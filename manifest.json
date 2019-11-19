@@ -1,0 +1,35 @@
+{
+  "browser_action": {
+    "browser_style": true,
+    "default_title": "tabContainer",
+    "default_popup": "context.html",
+    "default_icon": {
+      "128": "identity.svg"
+    }
+  },
+  "homepage_url": "https://github.com/sagitta1618/tabContainer",
+  "manifest_version": 2,
+  "name": "tabContainer",
+  "version": "1.0.0",
+  "permissions": [
+      "contextualIdentities",
+      "cookies",
+      "contextMenus",
+      "webNavigation",
+      "webRequest",
+      "<all_urls>",
+      "webRequestBlocking"
+  ],
+  "icons": {
+    "128": "identity.svg"
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "commands": {
+    "openNewContainer": {
+      "suggested_key": { "default": "Ctrl+Shift+F" },
+      "description": "Send a 'openNewContainer' event to the extension"
+    }
+  }
+}

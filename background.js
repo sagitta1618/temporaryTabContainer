@@ -122,7 +122,7 @@ var priv9 = {
     console.log("color = " + this.colors[this.icol])
     var self = this
     browser.contextualIdentities.create({
-      name: "priv9-" + this.counter, // add counter here ?
+      name: "TC" + this.counter, // add counter here ?
       color: this.colors[this.icol],
       icon: "fingerprint"
     }).then(this.onCreated, this.onError);
@@ -141,7 +141,7 @@ var priv9 = {
       priv9.counter = priv9.counter + 1
       //console.log("color = " + priv9.colors[priv9.icol])
       browser.contextualIdentities.create({
-        name: "priv9-" + priv9.counter, // add counter here ?
+        name: "TC" + priv9.counter, // add counter here ?
         color: priv9.colors[priv9.icol],
         icon: "fingerprint"
       }).then(function(context){

@@ -10,7 +10,7 @@
   "homepage_url": "https://github.com/sagitta1618/tabContainer",
   "manifest_version": 2,
   "name": "tabContainer",
-  "version": "1.0.2",
+  "version": "1.1.0",
   "permissions": [
       "contextualIdentities",
       "cookies",
@@ -29,7 +29,7 @@
   "commands": {
     "openNewContainer": {
       "suggested_key": { "default": "Ctrl+Shift+F" },
-      "description": "Send a 'openNewContainer' event to the extension"
+      "description": "Send a 'openNewTCtab' event to the extension"
     }
   }
 }

@@ -22,7 +22,6 @@ browser.contextualIdentities.create({
 }).then(onCreated, onError);
 */
 
-//console.log(priv9.colors)
 
 // from the example extension
 function eventHandler(event) {

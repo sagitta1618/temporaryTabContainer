@@ -164,12 +164,13 @@ var priv9 = {
   onGot : function(contexts) {
     console.log('found the following context = ' + contexts)
     for (let context of contexts) {
-      if (context.name[4] == '9') {
+      if ((context.name[0] == 'T') & (context.name[1] == 'C')) {
         console.log('mmh remaining tab found !')
         //browser.contextualIdentities.remove(context.cookieStoreId)
         //console.log('and removed !')
-        priv9.containers.push(context.cookieStoreId)
-        priv9.counter = priv9.counter + 1
+        browser.contextualIdentities.remove(context.cookieStoreId)
+//        priv9.containers.push(context.cookieStoreId)
+//        priv9.counter = priv9.counter + 1
         console.log('and ADDED to containers list')
 
       }

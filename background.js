@@ -91,8 +91,16 @@ function removeCallBack(tabId, removeInfo){
   tc.checkUnusedContainer(tabId)
 }
 
+function storeURL(tabId, removeInfo){
+  console.log(tabId, removeInfo)
+  browser.tabs.query({id: tabId}).then(tab => {
+    console.log('tab found', tab.url)
+  }
+}
+
 // so each time a tab is closed we check if we can delete an unused container
-browser.tabs.onRemoved.addListener(removeCallBack)
+// browser.tabs.onRemoved.addListener(removeCallBack)
+browser.tabs.onRemoved.addListener(storeURL)
 //browser.windows.onRemoved.addListener(removeCallBack)
 
 

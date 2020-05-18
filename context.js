@@ -22,7 +22,6 @@ browser.contextualIdentities.create({
 }).then(onCreated, onError);
 */
 
-
 // from the example extension
 function eventHandler(event) {
   if (event.target.dataset.action == 'create') {

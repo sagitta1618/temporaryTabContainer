@@ -10,6 +10,7 @@ var colors = ["blue", "turquoise", "green", "yellow", "orange", "red", "pink", "
 class TabContainer {
   constructor() {
     this.counter = 0 // number of container open during session
+    this.urls = new Map() // dictionnary with cookieStoreId and url
   }
 
   getColor(){ // return color from global 'colors' variable
@@ -27,20 +28,29 @@ class TabContainer {
   createNew(url, active=true) { // closure
     var self = this
     return new Promise(function(resolve, reject){
-      self.counter = self.counter + 1
-      browser.contextualIdentities.create({ // create new TC
-        name: "TC" + self.counter,
-        color: self.getColor(),
-        icon: "fingerprint"
-      }).then(
-        function(context){
-        console.log(`New TC: ${context.cookieStoreId}.`);
-        browser.tabs.create({cookieStoreId : context.cookieStoreId,
+      if (self.urls.has(url)) { // reuse TC
+        var cookieStoreId = self.urls.get(url)
+        console.log('Using TC:', cookieStoreId);
+        browser.tabs.create({cookieStoreId : cookieStoreId,
           url: url,
           active : active}).then(
-            function(){resolve(42)}, self.onError);
-        }, self.onError)
-    })
+            function(){resolve(42)}, self.onError)
+      } else { // create a new TC
+        self.counter = self.counter + 1
+        browser.contextualIdentities.create({ // create new TC
+          name: "TC" + self.counter,
+          color: self.getColor(),
+          icon: "fingerprint"
+        }).then(
+          function(context){
+          console.log(`New TC: ${context.cookieStoreId}.`);
+          browser.tabs.create({cookieStoreId : context.cookieStoreId,
+            url: url,
+            active : active}).then(
+              function(){resolve(42)}, self.onError);
+          }, self.onError)
+        }
+      })
   }
 
   cleaning() {
@@ -92,15 +102,16 @@ function removeCallBack(tabId, removeInfo){
 }
 
 function storeURL(tabId, removeInfo){
-  console.log(tabId, removeInfo)
-  browser.tabs.query({id: tabId}).then(tab => {
-    console.log('tab found', tab.url)
-  }
+  //console.log(tabId, removeInfo)
+  browser.tabs.get(tabId).then(tab => {
+    console.log(tab.url)
+    tc.urls.set(tab.url, tab.cookieStoreId)
+  })
 }
 
 // so each time a tab is closed we check if we can delete an unused container
 // browser.tabs.onRemoved.addListener(removeCallBack)
-browser.tabs.onRemoved.addListener(storeURL)
+browser.tabs.onUpdated.addListener(storeURL)
 //browser.windows.onRemoved.addListener(removeCallBack)
 
 

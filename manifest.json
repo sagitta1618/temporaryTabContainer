@@ -1,7 +1,7 @@
 {
   "browser_action": {
     "browser_style": true,
-    "default_title": "tabContainer",
+    "default_title": "tempContainer",
     "default_popup": "context.html",
     "default_icon": {
       "128": "icon128grey.png"
@@ -9,13 +9,13 @@
   },
   "homepage_url": "https://github.com/sagitta1618/tabContainer",
   "manifest_version": 2,
-  "name": "tabContainer",
-  "version": "1.1.0",
+  "name": "tempContainer",
+  "version": "1.0.0",
   "permissions": [
+      "tabs",
       "contextualIdentities",
       "cookies",
       "contextMenus",
-      "webNavigation",
       "webRequest",
       "<all_urls>",
       "webRequestBlocking"

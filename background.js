@@ -10,11 +10,9 @@ var colors = ["blue", "turquoise", "green", "yellow", "orange", "red", "pink", "
 class TabContainer {
   constructor() {
     this.counter = 0 // number of container open during session
-    this.urls = new Map() // dictionnary with cookieStoreId and url
   }
 
-  getColor(){ // return color from global 'colors' variable
-    var a = this.counter
+  getColor(a){ // return color from global 'colors' variable
     if (a > colors.length){
       a = a % colors.length
     }
@@ -27,29 +25,32 @@ class TabContainer {
 
   createNew(url, active=true) { // closure
     var self = this
+    if (url.slice(0,5) == 'about'){
+      url = null
+    }
     return new Promise(function(resolve, reject){
-      if (self.urls.has(url)) { // reuse TC
-        var cookieStoreId = self.urls.get(url)
-        console.log('Using TC:', cookieStoreId);
-        browser.tabs.create({cookieStoreId : cookieStoreId,
-          url: url,
+      var a = self.counter + 1
+      var color = self.getColor(a)
+      if (typeof color == 'undefined'){
+        color = 'red'
+      }
+      self.counter = self.counter + 1
+      browser.contextualIdentities.create({ // create new TC
+        name: "TC" + self.counter,
+        color: color,
+        icon: "fingerprint"
+      }).then(
+        function(context){
+        console.log(`New TC: ${context.cookieStoreId}.`);
+        browser.tabs.create({
+          cookieStoreId : context.cookieStoreId,
+          url : url,
           active : active}).then(
-            function(){resolve(42)}, self.onError)
-      } else { // create a new TC
-        self.counter = self.counter + 1
-        browser.contextualIdentities.create({ // create new TC
-          name: "TC" + self.counter,
-          color: self.getColor(),
-          icon: "fingerprint"
-        }).then(
-          function(context){
-          console.log(`New TC: ${context.cookieStoreId}.`);
-          browser.tabs.create({cookieStoreId : context.cookieStoreId,
-            url: url,
-            active : active}).then(
-              function(){resolve(42)}, self.onError);
-          }, self.onError)
-        }
+            function(tab){
+              console.log('New tab created')
+              console.log(tab)
+              resolve(42)}, self.onError);
+        }, self.onError)
       })
   }
 
@@ -97,24 +98,6 @@ class TabContainer {
 var tc = new TabContainer()
 tc.cleaning() // workaround to delete old container from previous session due to "close current tab" problem
 
-function removeCallBack(tabId, removeInfo){
-  tc.checkUnusedContainer(tabId)
-}
-
-function storeURL(tabId, removeInfo){
-  //console.log(tabId, removeInfo)
-  browser.tabs.get(tabId).then(tab => {
-    console.log(tab.url)
-    tc.urls.set(tab.url, tab.cookieStoreId)
-  })
-}
-
-// so each time a tab is closed we check if we can delete an unused container
-// browser.tabs.onRemoved.addListener(removeCallBack)
-browser.tabs.onUpdated.addListener(storeURL)
-//browser.windows.onRemoved.addListener(removeCallBack)
-
-
 // context-menus implementation
 browser.contextMenus.create({
   id: "contextNewTCtab",
@@ -131,18 +114,16 @@ browser.contextMenus.onClicked.addListener(function(info, tab) {
 
 // check if newtab is in a context otherwise, close it and create a container tab to load the url
 function callback(details) {
-  // console.log('callback (onBeforeRequest) : ' + details.url)
-  // console.log(details)
-  // TODO not do it for the last tab in the windows
-  if (details.url.slice(0,5) != 'about') {
+  if ((details.url.slice(0,5) != 'about')
+    & (details.tabId >= 0)) {
     browser.tabs.get(details.tabId).then((tab) => {
       if (tab.cookieStoreId == 'firefox-default') { // default tab
         tc.createNew(details.url).then(
           function(a){
-            // console.log('TC resolved with value:', a) // there you remove the tab
+            console.log('TC resolved with value:', a) // there you remove the tab
             browser.tabs.remove(tab.id)},
           function(b){
-            console.log('error in promise')
+            console.log('error in promise', b)
           })
       }
     })

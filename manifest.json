@@ -4,7 +4,7 @@
     "default_title": "tabContainer",
     "default_popup": "context.html",
     "default_icon": {
-      "128": "icon128grey.png"
+      "128": "icon128.png"
     }
   },
   "homepage_url": "https://github.com/sagitta1618/tabContainer",

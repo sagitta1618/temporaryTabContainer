@@ -55,7 +55,26 @@ class TabContainer {
   }
 
   cleaning() {
-    browser.contextualIdentities.query({}).then(this.onGot, this.onError)
+    browser.contextualIdentities.query({}).then((contexts) => {
+      this.onGot(contexts) // delete all contexts
+      // browser.tabs.query({}).then((tabs) => {
+      //   for (let i = 0; i < tabs.length; i++) {
+      //     if (tabs[i].cookieStoreId != 'firefox-default') {
+      //       // it's a tab that was previously open in a TC
+      //       console.log('found old TC tab', tabs[i])
+      //       this.createNew(tabs[i].url, tabs[i].active).then((a) => {
+      //         console.log('a=', a)
+      //         console.log('removing tabid=', tabs[i].id)
+      //         browser.tabs.remove(tabs[i].id)
+      //         console.log('tab removed')
+      //         // when having an activated tab, firefox will clik on
+      //         // it and reload it so if we delete the tab it will not
+      //         // know it and will raise tab ID error => better user tab reload?
+      //       })
+      //     }
+      //   }
+      // })
+    }, this.onError)
   }
 
   onGot(contexts) {
@@ -125,6 +144,25 @@ function callback(details) {
           function(b){
             console.log('error in promise', b)
           })
+      } else {
+        browser.contextualIdentities.query({}).then((contexts) => {
+          var itsin = false;
+          for (let i = 0; i < contexts.length; i++) {
+            if (tab.cookieStoreId == contexts[i].cookieStoreId) {
+              itsin = true;
+            }
+          }
+          if (itsin == false) {
+            console.log('old TC tab detected', tab)
+            tc.createNew(details.url).then(
+              function(a){
+                console.log('updated TC resolved with value:', a) // there you remove the tab
+                browser.tabs.remove(tab.id)},
+              function(b){
+                console.log('error in (updated) promise', b)
+              })
+          }
+        })
       }
     })
   }

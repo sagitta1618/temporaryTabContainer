@@ -23,7 +23,7 @@ class TabContainer {
     console.error(e);
   }
 
-  createNew(url, active=true) { // closure
+  createNew(url, active=true, pinned=false, index=undefined) { // closure
     var self = this
     if (url.slice(0,5) == 'about'){
       url = null
@@ -45,7 +45,9 @@ class TabContainer {
         browser.tabs.create({
           cookieStoreId : context.cookieStoreId,
           url : url,
-          active : active}).then(
+          active : active,
+          pinned : pinned,
+          index : index}).then(
             function(tab){
               console.log('New tab created')
               console.log(tab)
@@ -137,7 +139,7 @@ function callback(details) {
     & (details.tabId >= 0)) {
     browser.tabs.get(details.tabId).then((tab) => {
       if (tab.cookieStoreId == 'firefox-default') { // default tab
-        tc.createNew(details.url).then(
+        tc.createNew(details.url, active=tab.active, pinned=tab.pinned).then(
           function(a){
             console.log('TC resolved with value:', a) // there you remove the tab
             browser.tabs.remove(tab.id)},
@@ -154,7 +156,7 @@ function callback(details) {
           }
           if (itsin == false) {
             console.log('old TC tab detected', tab)
-            tc.createNew(details.url).then(
+            tc.createNew(details.url, active=tab.active, pinned=tab.pinned, index=tab.index).then(
               function(a){
                 console.log('updated TC resolved with value:', a) // there you remove the tab
                 browser.tabs.remove(tab.id)},
@@ -181,3 +183,42 @@ browser.commands.onCommand.addListener(function(command) {
     console.log("not good command received")
   }
 })
+
+// webrequest is better as it's lower level and avoid partial
+// loading of data in the browser (before the tab is closed)
+// browser.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
+//   // console.log('Tab updated', tab, 'changeInfo', changeInfo)
+//   if ('url' in changeInfo) {
+//     if ((changeInfo['url'].slice(0,5) != 'about')
+//       & (tab.id >= 0)) {
+//       if (tab.cookieStoreId == 'firefox-default') { // default tab
+//         tc.createNew(changeInfo['url'], active=tab.active, pinned=tab.pinned).then(
+//           function(a){
+//             console.log('TC resolved with value:', a) // there you remove the tab
+//             browser.tabs.remove(tab.id)},
+//           function(b){
+//             console.log('error in promise', b)
+//           })
+//       } else {
+//         browser.contextualIdentities.query({}).then((contexts) => {
+//           var itsin = false;
+//           for (let i = 0; i < contexts.length; i++) {
+//             if (tab.cookieStoreId == contexts[i].cookieStoreId) {
+//               itsin = true;
+//             }
+//           }
+//           if (itsin == false) {
+//             console.log('old TC tab detected', tab)
+//             tc.createNew(changeInfo['url'], active=tab.active, pinned=tab.pinned).then(
+//               function(a){
+//                 console.log('updated TC resolved with value:', a) // there you remove the tab
+//                 browser.tabs.remove(tab.id)},
+//               function(b){
+//                 console.log('error in (updated) promise', b)
+//             })
+//           }
+//         })
+//       }
+//     }
+//   }
+// })

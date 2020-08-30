@@ -1,5 +1,5 @@
-# tabContainer
-[**Install for firefox**](https://addons.mozilla.org/en-US/firefox/addon/tabcontainer/)
+# Temporary Tab Container
+[**Install for firefox**](https://addons.mozilla.org/en-US/firefox/addon/temporarytabcontainer/)
 
 Derived from the example addons: 'Contextual Identities' https://wiki.mozilla.org/Security/Contextual_Identity_Project/Containers
 

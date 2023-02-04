@@ -10,7 +10,7 @@
   "homepage_url": "https://github.com/sagitta1618/temporaryTabContainer",
   "manifest_version": 2,
   "name": "tabContainer",
-  "version": "1.1.7",
+  "version": "1.2.0",
   "permissions": [
       "tabs",
       "contextualIdentities",

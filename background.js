@@ -184,6 +184,27 @@ browser.commands.onCommand.addListener(function(command) {
   }
 })
 
+
+// delete temporary container when tab is closing
+function rmCallback(tabId, removeInfo) {
+  function cleanClosedTabs() {
+    tc.checkUnusedContainer()
+  }
+  setTimeout(cleanClosedTabs, 5000)
+  // ISSUE: no time to get tabId, by the time browser.tabs.get(tabId), the 
+  // tab is already closed... so instead each time a tab is closed, we trigger
+  // a checkUnusedContainer() after 5 s (in case the user want to restore the tab quickly)
+/*
+  browser.tabs.get(tabId).then((tab) => {
+    if (tab.cookieStoreId != 'firefox-default') { // it's a container tab
+      console.log('cleaning') // could introduce some delay in case of Ctrl + Shift + Tab
+      tc.cleaning()
+    }
+  })
+  */
+}
+browser.tabs.onRemoved.addListener(rmCallback)
+
 // webrequest is better as it's lower level and avoid partial
 // loading of data in the browser (before the tab is closed)
 // browser.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {

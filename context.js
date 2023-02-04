@@ -1,7 +1,7 @@
 // button to open new container
 // shortcut to open new container
 // function to check and close unopen container
-// do it object oriented no ? or as cleas and concise as possible
+// do it object oriented no ? or as clean and concise as possible
 // right click to make link open in new container
 
 

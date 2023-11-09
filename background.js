@@ -5,6 +5,8 @@ if there are container that are not used by any tabs and remove them.
 */
 
 const colors = ["blue", "turquoise", "green", "yellow", "orange", "red", "pink", "purple"];
+const containerPrefix = "TC";
+const containerIcon = "fingerprint";
 // ideally put this code in a separate script to be accessible by context.js too
 class TabContainer {
   constructor() {
@@ -30,9 +32,9 @@ class TabContainer {
       self.counter++;
       const color = self.getColor(self.counter);
       browser.contextualIdentities.create({
-        name: "TC" + self.counter,
+        name: containerPrefix + self.counter,
         color: color,
-        icon: "fingerprint"
+        icon: containerIcon
       }).then(
         function (context) {
           console.log(`New TC: ${context.cookieStoreId}.`);
@@ -60,7 +62,7 @@ class TabContainer {
 
   onGot(contexts) {
     for (let context of contexts) {
-      if (context.name.slice(0, 2) === "TC") {
+      if (context.name.slice(0, 2) === containerPrefix) {
         browser.contextualIdentities.remove(context.cookieStoreId);
         console.log("onGot: remaining container found and deleted");
       }
@@ -73,7 +75,7 @@ class TabContainer {
       console.log("checkUnusedContainer")
       const contexts = await browser.contextualIdentities.query({})
       for (let context of contexts) {
-        if (context.name.slice(0, 2) !== "TC") {
+        if (context.name.slice(0, 2) !== containerPrefix) {
           continue;
         }
         const cookieStoreId = context.cookieStoreId

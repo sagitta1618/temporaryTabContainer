@@ -13,10 +13,7 @@ class TabContainer {
   }
 
   getColor(a){ // return color from global 'colors' variable
-    if (a > colors.length){
-      a = a % colors.length
-    }
-    return colors[a]
+    return colors[a % colors.length];
   }
 
   onError(e) {
@@ -24,18 +21,16 @@ class TabContainer {
   }
 
   createNew(url, active=true, pinned=false, index=undefined) { // closure
-    var self = this
-    if (url.slice(0,5) == 'about'){
-      url = null
+    const self = this;
+
+    if (url.slice(0,5) === "about"){
+      url = null;
     }
-    return new Promise(function(resolve, reject){
-      var a = self.counter + 1
-      var color = self.getColor(a)
-      if (typeof color == 'undefined'){
-        color = 'red'
-      }
-      self.counter = self.counter + 1
-      browser.contextualIdentities.create({ // create new TC
+
+    return new Promise(function(resolve, reject) {
+      self.counter++;
+      const color = self.getColor(self.counter);
+      browser.contextualIdentities.create({
         name: "TC" + self.counter,
         color: color,
         icon: "fingerprint"
@@ -49,10 +44,11 @@ class TabContainer {
           pinned : pinned,
           index : index}).then(
             function(tab){
-              console.log('New tab created')
-              console.log(tab)
-              resolve(42)}, self.onError);
-        }, self.onError)
+              resolve(tab.id)
+            }, 
+            self.onError
+          );
+        }, self.onError);
       })
   }
 
@@ -81,7 +77,7 @@ class TabContainer {
 
   onGot(contexts) {
     for (let context of contexts) {
-      if ((context.name[0] == 'T') & (context.name[1] == 'C')) {
+      if ((context.name[0] == 'T') && (context.name[1] == 'C')) {
         console.log('onGot: remaining TC found and deleted')
         browser.contextualIdentities.remove(context.cookieStoreId)
       }
@@ -94,7 +90,7 @@ class TabContainer {
       console.log("checkUnusedContainer")
       var contexts = await browser.contextualIdentities.query({})
       for (let context of contexts) {
-        if ((context.name[0] == 'T') & (context.name[1] == 'C')) {
+        if ((context.name[0] == 'T') && (context.name[1] == 'C')) {
           var cookieStoreId = context.cookieStoreId
           var tabs = await browser.tabs.query({'cookieStoreId' : cookieStoreId})
           if (tabs.length == 0) { // not tabs are using the context so we can remove it
@@ -134,39 +130,51 @@ browser.contextMenus.onClicked.addListener(function(info, tab) {
 });
 
 // check if newtab is in a context otherwise, close it and create a container tab to load the url
-function callback(details) {
-  if ((details.url.slice(0,5) != 'about')
-    & (details.tabId >= 0)) {
-    browser.tabs.get(details.tabId).then((tab) => {
-      if (tab.cookieStoreId == 'firefox-default') { // default tab
-        tc.createNew(details.url, active=tab.active, pinned=tab.pinned).then(
-          function(a){
-            console.log('TC resolved with value:', a) // there you remove the tab
-            browser.tabs.remove(tab.id)},
-          function(b){
-            console.log('error in promise', b)
-          })
-      } else {
-        browser.contextualIdentities.query({}).then((contexts) => {
-          var itsin = false;
-          for (let i = 0; i < contexts.length; i++) {
-            if (tab.cookieStoreId == contexts[i].cookieStoreId) {
-              itsin = true;
-            }
-          }
-          if (itsin == false) {
-            console.log('old TC tab detected', tab)
-            tc.createNew(details.url, active=tab.active, pinned=tab.pinned, index=tab.index).then(
-              function(a){
-                console.log('updated TC resolved with value:', a) // there you remove the tab
-                browser.tabs.remove(tab.id)},
-              function(b){
-                console.log('error in (updated) promise', b)
-              })
-          }
-        })
+async function callback(details) {
+  if (details.url.slice(0,5) === "about" || details.tabId < 0) {
+    return;
+  }
+
+  const tab = await browser.tabs.get(details.tabId);
+
+  // `firefox-default` is the ID of the tabs which are yet 
+  // to be associated with a container
+  if (tab.cookieStoreId == "firefox-default") {
+    tc.createNew(details.url, active=tab.active, pinned=tab.pinned).then(
+      (_) => {
+        browser.tabs.remove(tab.id).then((_) => {
+          console.log("removed tab:", tab.id);
+        }, (error) => {
+          console.error("could not remove the tab:", tab.id, error);
+        });
+      },
+      (err) => {
+        console.log("could not create new tc tab:", err)
       }
-    })
+    );
+
+    return {cancel: true};
+  } else {
+    // if the tab already associated with a container,
+    // we should check if the container still exists
+    const contexts = await browser.contextualIdentities.query({});
+    const tabCtx = contexts.find((c) => c.cookieStoreId === tab.cookieStoreId);
+
+    // could not find associated container for the tab
+    // re-open the tab in a new container
+    if (tabCtx === undefined) {
+      tc.createNew(details.url, active=tab.active, pinned=tab.pinned, index=tab.index).then(
+        (a) => {
+          console.log("updated container for the tab:", a);
+          browser.tabs.remove(tab.id)
+        },
+        (err) => {
+          console.error('could not update container for the tab:', err);
+        }
+      );
+
+      return {cancel: true};
+    }
   }
 }
 

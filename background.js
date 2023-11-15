@@ -179,6 +179,15 @@ async function callback(details) {
   }
 }
 
+// we need the <all_urls> permission to automatically
+// open a new tab in a TC when it is not open via a
+// "user action" like the context menu. Because we do
+// this automatically and do not require user interaction
+// we need "<all_urls>" permission and end up with the 
+// warning "This extension can access data on all websites"
+// using the "activeTab" permission works only if we open
+// a new temporary container tab from the context menu or
+// keyboard shortcut (= with a user action)
 filter = {
   urls: ["<all_urls>"],
   types: ["main_frame"]

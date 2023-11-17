@@ -136,19 +136,34 @@ async function callback(details) {
 
   // `firefox-default` is the ID of the tabs which are yet 
   // to be associated with a container
-  if (tab.cookieStoreId == "firefox-default") {
-    tc.createNew(details.url, active = tab.active, pinned = tab.pinned).then(
-      (_) => {
-        browser.tabs.remove(tab.id).then((_) => {
-          console.log("removed tab:", tab.id);
-        }, (error) => {
-          console.error("could not remove the tab:", tab.id, error);
-        });
-      },
-      (err) => {
-        console.log("could not create new tc tab:", err)
-      }
-    );
+  if (tab.cookieStoreId === "firefox-default") {
+    // here is a workaround for the users of the Firefox Multi-Account Containers
+    // this prevents duplicated tabs creation
+    // since they listen the same event in the extension and we are'nt allowed to listen their messages,
+    // we have to give to their extension a chance to perform the necessary operations
+    setTimeout(function () {
+      browser.tabs.get(tab.id)
+        .then(
+          () => {
+            tc.createNew(details.url, active = true, pinned = tab.pinned).then(
+              (newId) => {
+                browser.tabs.remove(tab.id).then((_) => {
+                  console.log("removed tab:", tab.id);
+                }, (error) => {
+                  console.error("could not remove the tab:", tab.id, error);
+                });
+              },
+              (err) => {
+                console.log("could not create new tc tab:", err)
+              }
+            );
+          },
+          // if their extension has removed our tab,
+          // that means we can ignore that request
+          (error) => {
+            console.log("the request has been handled by other extension");
+          });
+    }, 20);
 
     return {
       cancel: true
